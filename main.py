@@ -4,8 +4,19 @@ from streamlit_folium import st_folium
 import pandas as pd
 import os
 
-DATA_FILE = 'clicked_locations_data.csv'
+warning_icon1 = folium.Icon(
+    color='darkred',     
+    icon='exclamation-triangle',
+    prefix='fa'        
+)
 
+warning_icon2 = folium.Icon(
+    color='orange',     
+    icon='exclamation-triangle',
+    prefix='fa'        
+)
+
+DATA_FILE = 'clicked_locations_data.csv'
 st.title("안전 지도")
 st.markdown("지도를 클릭하면 위험 지역을 체크할 수 있습니다.")
 
@@ -35,12 +46,18 @@ def create_folium_map(lat_str, lng_str):
     if st.session_state.clicked_locations:
         
         for idx, loc in enumerate(st.session_state.clicked_locations):
-            folium.Marker(
-                location=[loc['a'], loc['b']],
-                popup=f"클릭 #{idx+1}: ({loc['a']:.4f}, {loc['b']:.4f})",
-                icon=folium.Icon(color='red', icon='star')
-            ).add_to(m)
-        
+            if(loc['c']==1):
+                folium.Marker(
+                    location=[loc['a'], loc['b']],
+                    popup=f"사고지역 #{idx+1}: ({loc['a']:.4f}, {loc['b']:.4f})",
+                    icon=warning_icon1
+                ).add_to(m)
+            else:
+                folium.Marker(
+                    location=[loc['a'], loc['b']],
+                    popup=f"클릭 #{idx+1}: ({loc['a']:.4f}, {loc['b']:.4f})",
+                    icon=warning_icon2
+                ).add_to(m)
     return m
 
 def load_locations():
@@ -75,7 +92,7 @@ if map_data and map_data.get("last_clicked"):
     st.sidebar.markdown(f"**마지막 클릭 위치:**")
     st.sidebar.markdown(f"위도: **{lat:.6f}**")
     st.sidebar.markdown(f"경도: **{lng:.6f}**")
-    new_location = {'위도': lat, '경도': lng}
+    new_location = {'a': lat, 'b': lng, 'c': 2}
 
     if new_location not in st.session_state.clicked_locations:
         st.session_state.clicked_locations.append(new_location)
